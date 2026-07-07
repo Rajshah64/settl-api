@@ -8,6 +8,8 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { User } from './users/entities/user.entity';
 import { GroupsModule } from './groups/groups.module';
 import { GroupMembersModule } from './group-members/group-members.module';
+import { GroupMember } from './group-members/entities/group-member.entity';
+import { Group } from './groups/entities/group.entity';
 
 @Module({
   imports: [
@@ -22,7 +24,7 @@ import { GroupMembersModule } from './group-members/group-members.module';
       username: process.env.DATABASE_USER,
       password: process.env.DATABASE_PASSWORD,
       database: process.env.DATABASE_NAME,
-      entities: [User],
+      entities: [User, Group, GroupMember],
       synchronize: true,
     }),
   AuthModule,
