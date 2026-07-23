@@ -3,7 +3,7 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { AuthModule } from './auth/auth.module';
 import { UserModule } from './users/user.module';
-import { ConfigModule} from '@nestjs/config';
+import { ConfigModule } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { User } from './users/entities/user.entity';
 import { GroupsModule } from './groups/groups.module';
@@ -16,7 +16,7 @@ import { Group } from './groups/entities/group.entity';
     ConfigModule.forRoot({
       isGlobal: true,
     }),
-  
+
     TypeOrmModule.forRoot({
       type: 'postgres',
       host: process.env.DATABASE_HOST,
@@ -27,10 +27,11 @@ import { Group } from './groups/entities/group.entity';
       entities: [User, Group, GroupMember],
       synchronize: true,
     }),
-  AuthModule,
-  UserModule,
-  GroupsModule,
-  GroupMembersModule],
+    AuthModule,
+    UserModule,
+    GroupsModule,
+    GroupMembersModule,
+  ],
   controllers: [AppController],
   providers: [AppService],
 })

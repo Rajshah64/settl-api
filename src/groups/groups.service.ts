@@ -51,7 +51,8 @@ export class GroupsService {
     return `This action returns a #${id} group`;
   }
 
-  update(id: number, updateGroupDto: UpdateGroupDto) {
+  update(id: number, updateGroupDto: UpdateGroupDto): string {
+    void updateGroupDto;
     return `This action updates a #${id} group`;
   }
 

@@ -4,7 +4,8 @@ import { UpdateGroupMemberDto } from './dto/update-group-member.dto';
 
 @Injectable()
 export class GroupMembersService {
-  create(createGroupMemberDto: CreateGroupMemberDto) {
+  create(createGroupMemberDto: CreateGroupMemberDto): string {
+    void createGroupMemberDto;
     return 'This action adds a new groupMember';
   }
 
@@ -16,7 +17,8 @@ export class GroupMembersService {
     return `This action returns a #${id} groupMember`;
   }
 
-  update(id: number, updateGroupMemberDto: UpdateGroupMemberDto) {
+  update(id: number, updateGroupMemberDto: UpdateGroupMemberDto): string {
+    void updateGroupMemberDto;
     return `This action updates a #${id} groupMember`;
   }
 

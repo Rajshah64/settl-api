@@ -1,42 +1,53 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, ParseIntPipe } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Body,
+  Patch,
+  Param,
+  Delete,
+  ParseIntPipe,
+  UseGuards,
+  Req,
+  HttpCode,
+} from '@nestjs/common';
 import { UserService } from './user.service';
-import { CreateUserDto } from './dto/create-user.dto';
-import { UpdateUserDto } from './dto/update-user.dto';
+import { UpdateProfileDto } from './dto/update-profile.dto';
+import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
+import type { AuthenticatedRequest } from '../common/types/authenticated-request';
 
 @Controller('user')
+@UseGuards(JwtAuthGuard)
 export class UserController {
   constructor(private readonly userService: UserService) {}
 
-  @Post()
-  create(@Body() createUserDto: CreateUserDto) {
-    return this.userService.create(createUserDto);
+  @Get('me')
+  getMe(@Req() req: AuthenticatedRequest) {
+    return this.userService.findOne(req.user.id);
   }
 
-  @Get()
-  findAll() {
-    return this.userService.findAll();
+  @Patch('me')
+  updateMe(
+    @Req() req: AuthenticatedRequest,
+    @Body() updateProfileDto: UpdateProfileDto,
+  ) {
+    return this.userService.updateProfile(req.user.id, updateProfileDto);
   }
 
-  @Get(':id')
-  findOne(@Param('id',ParseIntPipe) id: number) {
-    return this.userService.findOne(id);
-    //Params and Query will always be strings. 
-    //we put a plus so as to convert it to number . 
-    //Typescript trick.
+  @Delete('me')
+  @HttpCode(204)
+  async deleteMe(@Req() req: AuthenticatedRequest): Promise<void> {
+    await this.userService.softDeleteAccount(req.user.id);
   }
 
+  // Static path segments must be declared before :id or Nest treats
+  // "email" as an id and ParseIntPipe rejects the request.
   @Get('email/:email')
   findByEmail(@Param('email') email: string) {
     return this.userService.findByEmail(email);
   }
 
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {
-    return this.userService.update(+id, updateUserDto);
-  }
-
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.userService.remove(+id);
+  @Get(':id')
+  findOne(@Param('id', ParseIntPipe) id: number) {
+    return this.userService.findOne(id);
   }
 }

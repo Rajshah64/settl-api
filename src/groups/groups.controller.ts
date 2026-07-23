@@ -1,4 +1,14 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Req, UseGuards } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+  Req,
+  UseGuards,
+} from '@nestjs/common';
 import { GroupsService } from './groups.service';
 import { CreateGroupDto } from './dto/create-group.dto';
 import { UpdateGroupDto } from './dto/update-group.dto';
@@ -10,7 +20,10 @@ export class GroupsController {
 
   @UseGuards(JwtAuthGuard)
   @Post()
-  create(@Body() createGroupDto: CreateGroupDto, @Req() req: { user: { id: number } }) {
+  create(
+    @Body() createGroupDto: CreateGroupDto,
+    @Req() req: { user: { id: number } },
+  ) {
     return this.groupsService.create(createGroupDto, req.user.id);
   }
 

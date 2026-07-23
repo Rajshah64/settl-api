@@ -1,6 +1,10 @@
-import { Injectable } from '@nestjs/common';
+import {
+  ConflictException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
-import { UpdateUserDto } from './dto/update-user.dto';
+import { UpdateProfileDto } from './dto/update-profile.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from './entities/user.entity';
 import { Repository } from 'typeorm';
@@ -10,36 +14,95 @@ export class UserService {
   constructor(
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
-  ){}
+  ) {}
 
-  async create(createUserDto: CreateUserDto) {
+  async create(createUserDto: CreateUserDto): Promise<User> {
     const user = this.userRepository.create(createUserDto);
-    // We are creating an object 
-    //and in the next line saving in the db.
-    return this.userRepository.save(user)
+    return this.userRepository.save(user);
   }
 
   findAll(): Promise<User[]> {
     return this.userRepository.find();
   }
 
-  findOne(id: number): Promise<User | null > {
-    return this.userRepository.findOneBy({id})
+  async findOne(id: number): Promise<User> {
+    const user = await this.userRepository.findOneBy({ id });
+    if (!user) {
+      throw new NotFoundException(`User with id ${id} not found`);
+    }
+    return user;
   }
 
-  findByEmail(email: string){
+  findByEmail(email: string): Promise<User | null> {
     return this.userRepository.findOne({
-      where:{
-        email,
-      }
+      where: { email },
     });
   }
 
-  update(id: number, updateUserDto: UpdateUserDto) {
-    return `This action updates a #${id} user`;
+  /**
+   * Auth-only query. password has select:false so default finds never load it.
+   * Login / change-password must use this — never expose it from controllers.
+   */
+  findByEmailWithPassword(email: string): Promise<User | null> {
+    return this.userRepository
+      .createQueryBuilder('user')
+      .addSelect('user.password')
+      .where('user.email = :email', { email })
+      .getOne();
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} user`;
+  async findByIdWithPassword(id: number): Promise<User> {
+    const user = await this.userRepository
+      .createQueryBuilder('user')
+      .addSelect('user.password')
+      .where('user.id = :id', { id })
+      .getOne();
+
+    if (!user) {
+      throw new NotFoundException(`User with id ${id} not found`);
+    }
+
+    return user;
+  }
+
+  async updateProfile(id: number, dto: UpdateProfileDto): Promise<User> {
+    const user = await this.findOne(id);
+
+    if (dto.firstName !== undefined) {
+      user.firstName = dto.firstName;
+    }
+    if (dto.lastName !== undefined) {
+      user.lastName = dto.lastName;
+    }
+
+    return this.userRepository.save(user);
+  }
+
+  async updatePassword(id: number, hashedPassword: string): Promise<void> {
+    await this.userRepository.update(id, { password: hashedPassword });
+  }
+
+  /**
+   * Soft-delete own account. Refuses if the user still owns active groups
+   * (matches Group.creator onDelete: RESTRICT — we surface a domain error
+   * instead of a raw FK violation).
+   */
+  async softDeleteAccount(id: number): Promise<void> {
+    const user = await this.userRepository.findOne({
+      where: { id },
+      relations: { createdGroups: true },
+    });
+
+    if (!user) {
+      throw new NotFoundException(`User with id ${id} not found`);
+    }
+
+    if (user.createdGroups.length > 0) {
+      throw new ConflictException(
+        'Cannot delete account while you still own groups. Delete or transfer those groups first.',
+      );
+    }
+
+    await this.userRepository.softRemove(user);
   }
 }

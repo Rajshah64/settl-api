@@ -1,6 +1,5 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
 import { Group } from './entities/group.entity';
 import { User } from '../users/entities/user.entity';
 import { GroupMember } from '../group-members/entities/group-member.entity';
@@ -8,41 +7,47 @@ import { GroupsService } from './groups.service';
 
 describe('GroupsService', () => {
   let service: GroupsService;
-  let groupRepository: Repository<Group>;
-  let userRepository: Repository<User>;
-  let groupMemberRepository: Repository<GroupMember>;
+
+  const groupCreateMock = jest.fn();
+  const groupSaveMock = jest.fn();
+  const userFindOneMock = jest.fn();
+  const groupMemberCreateMock = jest.fn();
+  const groupMemberSaveMock = jest.fn();
 
   beforeEach(async () => {
+    groupCreateMock.mockReset();
+    groupSaveMock.mockReset();
+    userFindOneMock.mockReset();
+    groupMemberCreateMock.mockReset();
+    groupMemberSaveMock.mockReset();
+
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         GroupsService,
         {
           provide: getRepositoryToken(Group),
           useValue: {
-            create: jest.fn(),
-            save: jest.fn(),
+            create: groupCreateMock,
+            save: groupSaveMock,
           },
         },
         {
           provide: getRepositoryToken(User),
           useValue: {
-            findOne: jest.fn(),
+            findOne: userFindOneMock,
           },
         },
         {
           provide: getRepositoryToken(GroupMember),
           useValue: {
-            create: jest.fn(),
-            save: jest.fn(),
+            create: groupMemberCreateMock,
+            save: groupMemberSaveMock,
           },
         },
       ],
     }).compile();
 
     service = module.get<GroupsService>(GroupsService);
-    groupRepository = module.get<Repository<Group>>(getRepositoryToken(Group));
-    userRepository = module.get<Repository<User>>(getRepositoryToken(User));
-    groupMemberRepository = module.get<Repository<GroupMember>>(getRepositoryToken(GroupMember));
   });
 
   it('should be defined', () => {
@@ -51,28 +56,35 @@ describe('GroupsService', () => {
 
   it('creates a group and a creator membership', async () => {
     const creator = { id: 1 } as User;
-    const createdGroup = { id: 10, name: 'Goa Trip', description: 'Trip with friends' } as Group;
+    const createdGroup = {
+      id: 10,
+      name: 'Goa Trip',
+      description: 'Trip with friends',
+    } as Group;
 
-    jest.spyOn(userRepository, 'findOne').mockResolvedValue(creator);
-    jest.spyOn(groupRepository, 'create').mockReturnValue(createdGroup);
-    jest.spyOn(groupRepository, 'save').mockResolvedValue(createdGroup);
-    jest.spyOn(groupMemberRepository, 'create').mockReturnValue({} as GroupMember);
-    jest.spyOn(groupMemberRepository, 'save').mockResolvedValue({} as GroupMember);
+    userFindOneMock.mockResolvedValue(creator);
+    groupCreateMock.mockReturnValue(createdGroup);
+    groupSaveMock.mockResolvedValue(createdGroup);
+    groupMemberCreateMock.mockReturnValue({});
+    groupMemberSaveMock.mockResolvedValue({});
 
-    const result = await service.create({ name: 'Goa Trip', description: 'Trip with friends' }, 1);
+    const result = await service.create(
+      { name: 'Goa Trip', description: 'Trip with friends' },
+      1,
+    );
 
-    expect(userRepository.findOne).toHaveBeenCalledWith({ where: { id: 1 } });
-    expect(groupRepository.create).toHaveBeenCalledWith({
+    expect(userFindOneMock).toHaveBeenCalledWith({ where: { id: 1 } });
+    expect(groupCreateMock).toHaveBeenCalledWith({
       name: 'Goa Trip',
       description: 'Trip with friends',
       creator,
     });
-    expect(groupRepository.save).toHaveBeenCalled();
-    expect(groupMemberRepository.create).toHaveBeenCalledWith({
+    expect(groupSaveMock).toHaveBeenCalled();
+    expect(groupMemberCreateMock).toHaveBeenCalledWith({
       group: createdGroup,
       user: creator,
     });
-    expect(groupMemberRepository.save).toHaveBeenCalled();
+    expect(groupMemberSaveMock).toHaveBeenCalled();
     expect(result).toEqual(createdGroup);
   });
 });
