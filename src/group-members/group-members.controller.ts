@@ -3,43 +3,47 @@ import {
   Get,
   Post,
   Body,
-  Patch,
   Param,
   Delete,
+  ParseIntPipe,
+  UseGuards,
+  Req,
+  HttpCode,
 } from '@nestjs/common';
 import { GroupMembersService } from './group-members.service';
-import { CreateGroupMemberDto } from './dto/create-group-member.dto';
-import { UpdateGroupMemberDto } from './dto/update-group-member.dto';
+import { AddGroupMemberDto } from './dto/add-group-member.dto';
+import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
+import type { AuthenticatedRequest } from '../common/types/authenticated-request';
 
-@Controller('group-members')
+@Controller('groups/:groupId/members')
+@UseGuards(JwtAuthGuard)
 export class GroupMembersController {
   constructor(private readonly groupMembersService: GroupMembersService) {}
 
-  @Post()
-  create(@Body() createGroupMemberDto: CreateGroupMemberDto) {
-    return this.groupMembersService.create(createGroupMemberDto);
-  }
-
   @Get()
-  findAll() {
-    return this.groupMembersService.findAll();
-  }
-
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.groupMembersService.findOne(+id);
-  }
-
-  @Patch(':id')
-  update(
-    @Param('id') id: string,
-    @Body() updateGroupMemberDto: UpdateGroupMemberDto,
+  list(
+    @Param('groupId', ParseIntPipe) groupId: number,
+    @Req() req: AuthenticatedRequest,
   ) {
-    return this.groupMembersService.update(+id, updateGroupMemberDto);
+    return this.groupMembersService.listByGroup(groupId, req.user.id);
   }
 
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.groupMembersService.remove(+id);
+  @Post()
+  add(
+    @Param('groupId', ParseIntPipe) groupId: number,
+    @Body() dto: AddGroupMemberDto,
+    @Req() req: AuthenticatedRequest,
+  ) {
+    return this.groupMembersService.addMember(groupId, dto.userId, req.user.id);
+  }
+
+  @Delete(':userId')
+  @HttpCode(204)
+  async remove(
+    @Param('groupId', ParseIntPipe) groupId: number,
+    @Param('userId', ParseIntPipe) userId: number,
+    @Req() req: AuthenticatedRequest,
+  ): Promise<void> {
+    await this.groupMembersService.removeMember(groupId, userId, req.user.id);
   }
 }

@@ -5,10 +5,18 @@ import { GroupMembersService } from './group-members.service';
 describe('GroupMembersController', () => {
   let controller: GroupMembersController;
 
+  const groupMembersServiceMock = {
+    listByGroup: jest.fn(),
+    addMember: jest.fn(),
+    removeMember: jest.fn(),
+  };
+
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       controllers: [GroupMembersController],
-      providers: [GroupMembersService],
+      providers: [
+        { provide: GroupMembersService, useValue: groupMembersServiceMock },
+      ],
     }).compile();
 
     controller = module.get<GroupMembersController>(GroupMembersController);

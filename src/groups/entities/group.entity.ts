@@ -25,12 +25,23 @@ export class Group {
   @Column({ type: 'varchar', nullable: true })
   description!: string | null;
 
+  // 6-digit numeric join code, globally unique. Rotating it invalidates old
+  // links. Short code is guessable, so it carries an expiry (below).
+  @Index({ unique: true })
+  @Column({ type: 'varchar', length: 6 })
+  inviteCode!: string;
+
+  // Validity window for the invite code. Null = never expires.
+  @Column({ type: 'timestamptz', nullable: true })
+  inviteCodeExpiresAt!: Date | null;
+
   @CreateDateColumn()
   createdAt!: Date;
 
   @UpdateDateColumn()
   updatedAt!: Date;
 
+  // Soft-delete = archive. restore() brings the group back.
   @DeleteDateColumn()
   deletedAt!: Date | null;
 
@@ -38,11 +49,8 @@ export class Group {
   //
   // onDelete: 'RESTRICT' — deliberate: deleting a user who owns groups is
   // blocked at the DB level instead of silently orphaning or cascading
-  // deletion of their groups. The user-deletion service must check
-  // createdGroups.length (or catch the FK violation) and surface a clean
-  // domain error instead of letting the raw constraint error bubble up.
-  // Longer-term product decision (transfer ownership / block / soft-delete
-  // creator) is intentionally deferred until Settl needs it.
+  // deletion of their groups. Keep in sync with GroupMember role OWNER
+  // whenever ownership transfers.
   @ManyToOne(() => User, (user) => user.createdGroups, {
     nullable: false,
     onDelete: 'RESTRICT',

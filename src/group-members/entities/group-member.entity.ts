@@ -1,4 +1,5 @@
 import {
+  Column,
   CreateDateColumn,
   Entity,
   Index,
@@ -10,9 +11,10 @@ import {
 
 import { User } from '../../users/entities/user.entity';
 import { Group } from '../../groups/entities/group.entity';
+import { GroupRole } from '../enums/group-role.enum';
 
 // Join table promoted to a full entity (instead of @ManyToMany) because it
-// carries its own data beyond the two FKs — joinedAt now, role later.
+// carries its own data beyond the two FKs — joinedAt + role.
 @Entity('group_members')
 @Unique(['group', 'user']) // one membership row per (user, group) pair — DB-enforced
 export class GroupMember {
@@ -40,9 +42,9 @@ export class GroupMember {
   @Index() // supports "all groups a user belongs to" lookups
   user!: User;
 
+  @Column({ type: 'varchar', default: GroupRole.MEMBER })
+  role!: GroupRole;
+
   @CreateDateColumn()
   joinedAt!: Date;
-
-  // FUTURE: role: GroupRole (enum OWNER | ADMIN | MEMBER), default MEMBER.
-  // Deferred until role-based permissions are actually implemented.
 }

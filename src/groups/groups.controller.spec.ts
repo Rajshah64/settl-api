@@ -7,10 +7,14 @@ describe('GroupsController', () => {
 
   const groupsServiceMock = {
     create: jest.fn(),
-    findAll: jest.fn(),
+    findMyGroups: jest.fn(),
     findOne: jest.fn(),
     update: jest.fn(),
-    remove: jest.fn(),
+    softDelete: jest.fn(),
+    restore: jest.fn(),
+    transferOwnership: jest.fn(),
+    joinByCode: jest.fn(),
+    leave: jest.fn(),
   };
 
   beforeEach(async () => {
