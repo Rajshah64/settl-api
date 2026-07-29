@@ -3,26 +3,26 @@ import { Column, CreateDateColumn, DeleteDateColumn, Entity, PrimaryGeneratedCol
 @Entity()
 export class User {
     @PrimaryGeneratedColumn()
-    id: number;
+    id!: number;
 
     @Column()
-    firstName: string;
+    firstName!: string;
 
     @Column()
-    lastName: string;
+    lastName!: string;
 
     @Column({unique: true})
-    email: string;
+    email!: string;
 
     @Column({nullable: false})
-    password: string;
+    password!: string;
 
     @CreateDateColumn()
-    createdAt: Date;
+    createdAt!: Date;
     
     @UpdateDateColumn()
-    updatedAt: Date;
+    updatedAt!: Date;
 
     @DeleteDateColumn()
-    deletedAt: Date | null;
+    deletedAt!: Date | null;
 }
