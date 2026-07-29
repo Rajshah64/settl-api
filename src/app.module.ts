@@ -6,6 +6,8 @@ import { UserModule } from './users/user.module';
 import { ConfigModule} from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { User } from './users/entities/user.entity';
+import { GroupsModule } from './groups/groups.module';
+import { GroupMembersModule } from './group-members/group-members.module';
 
 @Module({
   imports: [
@@ -24,7 +26,9 @@ import { User } from './users/entities/user.entity';
       synchronize: true,
     }),
   AuthModule,
-  UserModule],
+  UserModule,
+  GroupsModule,
+  GroupMembersModule],
   controllers: [AppController],
   providers: [AppService],
 })

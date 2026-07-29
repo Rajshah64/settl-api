@@ -1,28 +1,45 @@
-import { Column, CreateDateColumn, DeleteDateColumn, Entity, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
+import {
+  Column,
+  CreateDateColumn,
+  DeleteDateColumn,
+  Entity,
+  OneToMany,
+  PrimaryGeneratedColumn,
+  UpdateDateColumn,
+} from 'typeorm';
 
-@Entity()
+import { Group } from 'src/groups/entities/group.entity';
+import { GroupMember } from 'src/group-members/entities/group-member.entity';
+
+@Entity('users')
 export class User {
-    @PrimaryGeneratedColumn()
-    id!: number;
+  @PrimaryGeneratedColumn()
+  id!: number;
 
-    @Column()
-    firstName!: string;
+  @Column()
+  firstName!: string;
 
-    @Column()
-    lastName!: string;
+  @Column()
+  lastName!: string;
 
-    @Column({unique: true})
-    email!: string;
+  @Column({ unique: true })
+  email!: string;
 
-    @Column({nullable: false})
-    password!: string;
+  @Column({ select: false })
+  password!: string;
 
-    @CreateDateColumn()
-    createdAt!: Date;
-    
-    @UpdateDateColumn()
-    updatedAt!: Date;
+  @CreateDateColumn()
+  createdAt!: Date;
 
-    @DeleteDateColumn()
-    deletedAt!: Date | null;
+  @UpdateDateColumn()
+  updatedAt!: Date;
+
+  @DeleteDateColumn()
+  deletedAt!: Date | null;
+
+  @OneToMany(() => Group, (group) => group.creator)
+  createdGroups!: Group[];
+
+  @OneToMany(() => GroupMember, (groupMember) => groupMember.user)
+  groupMemberships!: GroupMember[];
 }
