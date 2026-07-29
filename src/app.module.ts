@@ -1,10 +1,12 @@
 import { Module } from '@nestjs/common';
+import { APP_GUARD } from '@nestjs/core';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { AuthModule } from './auth/auth.module';
 import { UserModule } from './users/user.module';
-import { ConfigModule } from '@nestjs/config';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 import { User } from './users/entities/user.entity';
 import { GroupsModule } from './groups/groups.module';
 import { GroupMembersModule } from './group-members/group-members.module';
@@ -15,6 +17,19 @@ import { Group } from './groups/entities/group.entity';
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
+    }),
+
+    // In-memory store for now. Swap storage to Redis (ioredis) when we
+    // need shared limits across multiple API instances.
+    ThrottlerModule.forRootAsync({
+      inject: [ConfigService],
+      useFactory: (config: ConfigService) => [
+        {
+          name: 'default',
+          ttl: Number(config.get('THROTTLE_TTL_MS') ?? 60_000),
+          limit: Number(config.get('THROTTLE_LIMIT') ?? 100),
+        },
+      ],
     }),
 
     TypeOrmModule.forRoot({
@@ -33,6 +48,12 @@ import { Group } from './groups/entities/group.entity';
     GroupMembersModule,
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [
+    AppService,
+    {
+      provide: APP_GUARD,
+      useClass: ThrottlerGuard,
+    },
+  ],
 })
 export class AppModule {}

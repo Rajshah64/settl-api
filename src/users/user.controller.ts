@@ -9,9 +9,11 @@ import {
   UseGuards,
   Req,
   HttpCode,
+  Query,
 } from '@nestjs/common';
 import { UserService } from './user.service';
 import { UpdateProfileDto } from './dto/update-profile.dto';
+import { SearchUsersDto } from './dto/search-users.dto';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 import type { AuthenticatedRequest } from '../common/types/authenticated-request';
 
@@ -39,8 +41,12 @@ export class UserController {
     await this.userService.softDeleteAccount(req.user.id);
   }
 
-  // Static path segments must be declared before :id or Nest treats
-  // "email" as an id and ParseIntPipe rejects the request.
+  // Static paths before :id — otherwise Nest captures "search" / "email" as ids.
+  @Get('search')
+  search(@Query() query: SearchUsersDto) {
+    return this.userService.search(query.q, query.page ?? 1, query.limit ?? 20);
+  }
+
   @Get('email/:email')
   findByEmail(@Param('email') email: string) {
     return this.userService.findByEmail(email);

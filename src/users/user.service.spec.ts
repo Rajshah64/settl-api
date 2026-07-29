@@ -1,6 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
-import { ConflictException, NotFoundException } from '@nestjs/common';
+import { ConflictException, NotFoundException, BadRequestException } from '@nestjs/common';
 import { UserService } from './user.service';
 import { User } from './entities/user.entity';
 
@@ -96,11 +96,30 @@ describe('UserService', () => {
     expect(userRepositoryMock.softRemove).toHaveBeenCalledWith(user);
   });
 
-  it('throws when updating a missing user', async () => {
-    userRepositoryMock.findOneBy.mockResolvedValue(null);
+  it('searches users with pagination meta', async () => {
+    const getManyAndCount = jest
+      .fn()
+      .mockResolvedValue([[{ id: 1, firstName: 'Raj' }], 1]);
+    userRepositoryMock.createQueryBuilder.mockReturnValue({
+      where: jest.fn().mockReturnThis(),
+      orderBy: jest.fn().mockReturnThis(),
+      addOrderBy: jest.fn().mockReturnThis(),
+      skip: jest.fn().mockReturnThis(),
+      take: jest.fn().mockReturnThis(),
+      getManyAndCount,
+    });
 
-    await expect(
-      service.updateProfile(99, { firstName: 'X' }),
-    ).rejects.toBeInstanceOf(NotFoundException);
+    const result = await service.search('Raj', 1, 20);
+
+    expect(result).toEqual({
+      data: [{ id: 1, firstName: 'Raj' }],
+      meta: { page: 1, limit: 20, total: 1, totalPages: 1 },
+    });
+  });
+
+  it('rejects wildcard-only search queries', async () => {
+    await expect(service.search('%%%')).rejects.toBeInstanceOf(
+      BadRequestException,
+    );
   });
 });

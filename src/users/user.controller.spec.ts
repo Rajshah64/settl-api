@@ -10,6 +10,7 @@ describe('UserController', () => {
     findByEmail: jest.fn(),
     updateProfile: jest.fn(),
     softDeleteAccount: jest.fn(),
+    search: jest.fn(),
   };
 
   beforeEach(async () => {
