@@ -15,6 +15,10 @@ import { GroupRole, hasMinRole } from '../group-members/enums/group-role.enum';
 import { CreateExpenseDto } from './dto/create-expense.dto';
 import { UpdateExpenseDto } from './dto/update-expense.dto';
 import { splitEquallyPaise } from './utils/split-equally';
+import {
+  buildGroupBalances,
+  type GroupBalancesResult,
+} from './utils/compute-balances';
 
 export interface PaginatedExpenses {
   data: Expense[];
@@ -272,8 +276,46 @@ export class ExpensesService {
       existing.paidBy.id,
     );
 
-    // softDelete by id avoids cascading soft-remove into share rows
-    // (shares have no DeleteDateColumn).
     await this.expenseRepository.softDelete(existing.id);
+  }
+
+  /**
+   * Derived balances for the group (no settlements table yet).
+   * Soft-deleted expenses are excluded by TypeORM default.
+   */
+  async getBalances(
+    groupId: number,
+    actorUserId: number,
+  ): Promise<GroupBalancesResult> {
+    await this.groupMembersService.assertMember(groupId, actorUserId);
+
+    const memberships = await this.groupMembersService.listByGroup(
+      groupId,
+      actorUserId,
+    );
+
+    const members = memberships.map((m) => ({
+      id: m.user.id,
+      firstName: m.user.firstName,
+      lastName: m.user.lastName,
+      email: m.user.email,
+    }));
+
+    const expenses = await this.expenseRepository.find({
+      where: { group: { id: groupId } },
+      relations: { paidBy: true, shares: { user: true } },
+    });
+
+    return buildGroupBalances(
+      members,
+      expenses.map((e) => ({
+        amountPaise: Number(e.amountPaise),
+        paidByUserId: e.paidBy.id,
+        shares: e.shares.map((s) => ({
+          userId: s.user.id,
+          amountPaise: Number(s.amountPaise),
+        })),
+      })),
+    );
   }
 }

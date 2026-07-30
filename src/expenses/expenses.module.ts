@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ExpensesService } from './expenses.service';
 import { ExpensesController } from './expenses.controller';
+import { BalancesController } from './balances.controller';
 import { Expense } from './entities/expense.entity';
 import { ExpenseShare } from './entities/expense-share.entity';
 import { Group } from '../groups/entities/group.entity';
@@ -13,7 +14,7 @@ import { GroupMembersModule } from '../group-members/group-members.module';
     TypeOrmModule.forFeature([Expense, ExpenseShare, Group, User]),
     GroupMembersModule,
   ],
-  controllers: [ExpensesController],
+  controllers: [ExpensesController, BalancesController],
   providers: [ExpensesService],
   exports: [ExpensesService],
 })
