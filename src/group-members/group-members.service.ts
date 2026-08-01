@@ -158,7 +158,7 @@ export class GroupMembersService {
     const repo = this.members(manager);
     const existing = await this.findMembership(group.id, user.id, manager);
     if (existing) {
-      throw new ConflictException('You are already a member of this group');
+      return existing;
     }
 
     const membership = repo.create({

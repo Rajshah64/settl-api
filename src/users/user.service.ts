@@ -120,6 +120,10 @@ export class UserService {
     if (dto.lastName !== undefined) {
       user.lastName = dto.lastName;
     }
+    if (dto.upiId !== undefined) {
+      const trimmed = dto.upiId.trim();
+      user.upiId = trimmed.length === 0 ? null : trimmed;
+    }
 
     return this.userRepository.save(user);
   }

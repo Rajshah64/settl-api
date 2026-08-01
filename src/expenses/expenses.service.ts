@@ -301,6 +301,7 @@ export class ExpensesService {
       firstName: m.user.firstName,
       lastName: m.user.lastName,
       email: m.user.email,
+      upiId: m.user.upiId ?? null,
     }));
 
     const [expenses, recordedSettlements] = await Promise.all([

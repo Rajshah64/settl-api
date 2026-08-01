@@ -48,6 +48,13 @@ export class User {
   @DeleteDateColumn()
   deletedAt!: Date | null;
 
+  /**
+   * Optional UPI VPA for pay deep links (e.g. name@oksbi).
+   * Null = no UPI pay button for this user.
+   */
+  @Column({ type: 'varchar', length: 256, nullable: true })
+  upiId!: string | null;
+
   // Inverse side only — no FK column here. The creatorId FK physically
   // lives on Group (the @ManyToOne side owns the column).
   @OneToMany(() => Group, (group) => group.creator)

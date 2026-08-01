@@ -8,6 +8,7 @@ describe('GroupsController', () => {
   const groupsServiceMock = {
     create: jest.fn(),
     findMyGroups: jest.fn(),
+    findMyArchivedGroups: jest.fn(),
     findOne: jest.fn(),
     update: jest.fn(),
     softDelete: jest.fn(),

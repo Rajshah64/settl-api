@@ -3,6 +3,7 @@ export interface BalanceUserRef {
   firstName: string;
   lastName: string;
   email: string;
+  upiId: string | null;
 }
 
 export interface NetBalance {

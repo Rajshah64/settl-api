@@ -7,9 +7,9 @@ import {
 
 describe('computeNetBalances', () => {
   const members = [
-    { id: 1, firstName: 'A', lastName: 'One', email: 'a@x.com' },
-    { id: 2, firstName: 'B', lastName: 'Two', email: 'b@x.com' },
-    { id: 3, firstName: 'C', lastName: 'Three', email: 'c@x.com' },
+    { id: 1, firstName: 'A', lastName: 'One', email: 'a@x.com', upiId: null },
+    { id: 2, firstName: 'B', lastName: 'Two', email: 'b@x.com', upiId: null },
+    { id: 3, firstName: 'C', lastName: 'Three', email: 'c@x.com', upiId: null },
   ];
 
   it('credits payer and debits each share', () => {
@@ -53,9 +53,9 @@ describe('applySettlements', () => {
 describe('simplifyDebts', () => {
   it('produces minimal suggested transfers', () => {
     const users = new Map([
-      [1, { id: 1, firstName: 'A', lastName: 'One', email: 'a@x.com' }],
-      [2, { id: 2, firstName: 'B', lastName: 'Two', email: 'b@x.com' }],
-      [3, { id: 3, firstName: 'C', lastName: 'Three', email: 'c@x.com' }],
+      [1, { id: 1, firstName: 'A', lastName: 'One', email: 'a@x.com', upiId: null }],
+      [2, { id: 2, firstName: 'B', lastName: 'Two', email: 'b@x.com', upiId: null }],
+      [3, { id: 3, firstName: 'C', lastName: 'Three', email: 'c@x.com', upiId: null }],
     ]);
     const net = new Map([
       [1, 200],
@@ -73,8 +73,8 @@ describe('simplifyDebts', () => {
 describe('buildGroupBalances', () => {
   it('returns sorted nets and settlements', () => {
     const members = [
-      { id: 1, firstName: 'A', lastName: 'One', email: 'a@x.com' },
-      { id: 2, firstName: 'B', lastName: 'Two', email: 'b@x.com' },
+      { id: 1, firstName: 'A', lastName: 'One', email: 'a@x.com', upiId: null },
+      { id: 2, firstName: 'B', lastName: 'Two', email: 'b@x.com', upiId: null },
     ];
     const result = buildGroupBalances(members, [
       {
@@ -100,8 +100,8 @@ describe('buildGroupBalances', () => {
 
   it('folds recorded settlements into nets and clears suggestions', () => {
     const members = [
-      { id: 1, firstName: 'A', lastName: 'One', email: 'a@x.com' },
-      { id: 2, firstName: 'B', lastName: 'Two', email: 'b@x.com' },
+      { id: 1, firstName: 'A', lastName: 'One', email: 'a@x.com', upiId: null },
+      { id: 2, firstName: 'B', lastName: 'Two', email: 'b@x.com', upiId: null },
     ];
     const result = buildGroupBalances(
       members,

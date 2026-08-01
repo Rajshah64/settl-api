@@ -100,6 +100,18 @@ export class GroupsService {
       .getMany();
   }
 
+  /** Archived groups this user owns (creator), for restore UI. */
+  async findMyArchivedGroups(userId: number): Promise<Group[]> {
+    return this.groupRepository
+      .createQueryBuilder('group')
+      .withDeleted()
+      .leftJoinAndSelect('group.creator', 'creator')
+      .where('group.deletedAt IS NOT NULL')
+      .andWhere('group.creatorId = :userId', { userId })
+      .orderBy('group.deletedAt', 'DESC')
+      .getMany();
+  }
+
   async findOne(groupId: number, userId: number): Promise<Group> {
     await this.groupMembersService.assertMember(groupId, userId);
 

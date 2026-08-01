@@ -39,6 +39,12 @@ export class GroupsController {
   }
 
   // Static path before :id
+  @Get('archived')
+  findArchived(@Req() req: AuthenticatedRequest) {
+    return this.groupsService.findMyArchivedGroups(req.user.id);
+  }
+
+  // Static path before :id
   @Post('join')
   join(@Body() dto: JoinGroupDto, @Req() req: AuthenticatedRequest) {
     return this.groupsService.joinByCode(dto.code, req.user.id);
