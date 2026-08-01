@@ -19,6 +19,7 @@ import {
   buildGroupBalances,
   type GroupBalancesResult,
 } from './utils/compute-balances';
+import { SettlementsService } from '../settlements/settlements.service';
 
 export interface PaginatedExpenses {
   data: Expense[];
@@ -40,6 +41,7 @@ export class ExpensesService {
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
     private readonly groupMembersService: GroupMembersService,
+    private readonly settlementsService: SettlementsService,
     private readonly dataSource: DataSource,
   ) {}
 
@@ -280,8 +282,8 @@ export class ExpensesService {
   }
 
   /**
-   * Derived balances for the group (no settlements table yet).
-   * Soft-deleted expenses are excluded by TypeORM default.
+   * Derived balances for the group.
+   * Soft-deleted expenses and settlements are excluded by TypeORM default.
    */
   async getBalances(
     groupId: number,
@@ -301,10 +303,13 @@ export class ExpensesService {
       email: m.user.email,
     }));
 
-    const expenses = await this.expenseRepository.find({
-      where: { group: { id: groupId } },
-      relations: { paidBy: true, shares: { user: true } },
-    });
+    const [expenses, recordedSettlements] = await Promise.all([
+      this.expenseRepository.find({
+        where: { group: { id: groupId } },
+        relations: { paidBy: true, shares: { user: true } },
+      }),
+      this.settlementsService.listForBalances(groupId),
+    ]);
 
     return buildGroupBalances(
       members,
@@ -316,6 +321,7 @@ export class ExpensesService {
           amountPaise: Number(s.amountPaise),
         })),
       })),
+      recordedSettlements,
     );
   }
 }

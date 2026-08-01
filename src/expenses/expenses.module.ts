@@ -8,11 +8,13 @@ import { ExpenseShare } from './entities/expense-share.entity';
 import { Group } from '../groups/entities/group.entity';
 import { User } from '../users/entities/user.entity';
 import { GroupMembersModule } from '../group-members/group-members.module';
+import { SettlementsModule } from '../settlements/settlements.module';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([Expense, ExpenseShare, Group, User]),
     GroupMembersModule,
+    SettlementsModule,
   ],
   controllers: [ExpensesController, BalancesController],
   providers: [ExpensesService],

@@ -61,6 +61,31 @@ export function computeNetBalances(
 }
 
 /**
+ * Recorded repayments: `from` paid `to`.
+ * - from (debtor) net += amount
+ * - to (creditor) net -= amount
+ */
+export function applySettlements(
+  net: Map<number, number>,
+  settlements: Array<{
+    fromUserId: number;
+    toUserId: number;
+    amountPaise: number;
+  }>,
+): void {
+  for (const s of settlements) {
+    if (!net.has(s.fromUserId)) {
+      net.set(s.fromUserId, 0);
+    }
+    if (!net.has(s.toUserId)) {
+      net.set(s.toUserId, 0);
+    }
+    net.set(s.fromUserId, (net.get(s.fromUserId) ?? 0) + s.amountPaise);
+    net.set(s.toUserId, (net.get(s.toUserId) ?? 0) - s.amountPaise);
+  }
+}
+
+/**
  * Greedy debt simplification: debtors pay creditors until settled.
  * Deterministic: sort by user id then amount.
  */
@@ -108,9 +133,15 @@ export function buildGroupBalances(
     paidByUserId: number;
     shares: Array<{ userId: number; amountPaise: number }>;
   }>,
+  recordedSettlements: Array<{
+    fromUserId: number;
+    toUserId: number;
+    amountPaise: number;
+  }> = [],
 ): GroupBalancesResult {
   const usersById = new Map(members.map((m) => [m.id, m]));
   const net = computeNetBalances(members, expenses);
+  applySettlements(net, recordedSettlements);
 
   const balances: NetBalance[] = members
     .map((user) => ({
@@ -119,6 +150,7 @@ export function buildGroupBalances(
     }))
     .sort((a, b) => b.netPaise - a.netPaise || a.user.id - b.user.id);
 
+  /** Suggested transfers to clear remaining nets (not persisted). */
   const settlements = simplifyDebts(usersById, net);
 
   return { balances, settlements };

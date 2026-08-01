@@ -15,6 +15,8 @@ import { Group } from './groups/entities/group.entity';
 import { ExpensesModule } from './expenses/expenses.module';
 import { Expense } from './expenses/entities/expense.entity';
 import { ExpenseShare } from './expenses/entities/expense-share.entity';
+import { SettlementsModule } from './settlements/settlements.module';
+import { Settlement } from './settlements/entities/settlement.entity';
 
 @Module({
   imports: [
@@ -42,7 +44,7 @@ import { ExpenseShare } from './expenses/entities/expense-share.entity';
       username: process.env.DATABASE_USER,
       password: process.env.DATABASE_PASSWORD,
       database: process.env.DATABASE_NAME,
-      entities: [User, Group, GroupMember, Expense, ExpenseShare],
+      entities: [User, Group, GroupMember, Expense, ExpenseShare, Settlement],
       synchronize: true,
     }),
     AuthModule,
@@ -50,6 +52,7 @@ import { ExpenseShare } from './expenses/entities/expense-share.entity';
     GroupsModule,
     GroupMembersModule,
     ExpensesModule,
+    SettlementsModule,
   ],
   controllers: [AppController],
   providers: [

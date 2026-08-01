@@ -8,6 +8,7 @@ import { Group } from '../groups/entities/group.entity';
 import { User } from '../users/entities/user.entity';
 import { GroupMembersService } from '../group-members/group-members.service';
 import { GroupRole } from '../group-members/enums/group-role.enum';
+import { SettlementsService } from '../settlements/settlements.service';
 
 describe('ExpensesService', () => {
   let service: ExpensesService;
@@ -22,6 +23,9 @@ describe('ExpensesService', () => {
   const groupMembersServiceMock = {
     assertMember: jest.fn(),
     findMembership: jest.fn(),
+  };
+  const settlementsServiceMock = {
+    listForBalances: jest.fn().mockResolvedValue([]),
   };
 
   const managerMock = {
@@ -50,6 +54,7 @@ describe('ExpensesService', () => {
         { provide: getRepositoryToken(Group), useValue: groupRepositoryMock },
         { provide: getRepositoryToken(User), useValue: userRepositoryMock },
         { provide: GroupMembersService, useValue: groupMembersServiceMock },
+        { provide: SettlementsService, useValue: settlementsServiceMock },
         { provide: DataSource, useValue: dataSourceMock },
       ],
     }).compile();

@@ -1,4 +1,5 @@
 import {
+  applySettlements,
   buildGroupBalances,
   computeNetBalances,
   simplifyDebts,
@@ -27,6 +28,25 @@ describe('computeNetBalances', () => {
     expect(net.get(1)).toBe(200);
     expect(net.get(2)).toBe(-100);
     expect(net.get(3)).toBe(-100);
+  });
+});
+
+describe('applySettlements', () => {
+  it('reduces debtor and creditor nets when from pays to', () => {
+    const net = new Map([
+      [1, 200],
+      [2, -100],
+      [3, -100],
+    ]);
+
+    applySettlements(net, [
+      { fromUserId: 2, toUserId: 1, amountPaise: 100 },
+      { fromUserId: 3, toUserId: 1, amountPaise: 100 },
+    ]);
+
+    expect(net.get(1)).toBe(0);
+    expect(net.get(2)).toBe(0);
+    expect(net.get(3)).toBe(0);
   });
 });
 
@@ -76,5 +96,29 @@ describe('buildGroupBalances', () => {
         amountPaise: 50,
       },
     ]);
+  });
+
+  it('folds recorded settlements into nets and clears suggestions', () => {
+    const members = [
+      { id: 1, firstName: 'A', lastName: 'One', email: 'a@x.com' },
+      { id: 2, firstName: 'B', lastName: 'Two', email: 'b@x.com' },
+    ];
+    const result = buildGroupBalances(
+      members,
+      [
+        {
+          amountPaise: 100,
+          paidByUserId: 1,
+          shares: [
+            { userId: 1, amountPaise: 50 },
+            { userId: 2, amountPaise: 50 },
+          ],
+        },
+      ],
+      [{ fromUserId: 2, toUserId: 1, amountPaise: 50 }],
+    );
+
+    expect(result.balances.every((b) => b.netPaise === 0)).toBe(true);
+    expect(result.settlements).toHaveLength(0);
   });
 });
